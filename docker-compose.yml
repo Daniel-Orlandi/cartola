@@ -1,0 +1,35 @@
+
+version: '3'
+
+services:
+  mysql: 
+    image: mysql:5.7.16
+    restart: always
+    env_file:
+         - .env
+    environment:
+        - MYSQL_ROOT_USER=${MYSQL_ROOT_USER}
+        - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+        - MYSQL_DATABASE=${MYSQL_DATABASE}
+    ports:
+        - '3306:3306'                 
+    volumes:         
+        - "${DB_DATA_PATH_MYSQL}/database:/var/lib/mysql:rw"    
+    
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"    
+    
+  goapp:
+    build:
+     context: .
+     dockerfile: Dockerfile    
+    links:
+            - "mysql"  
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./goapp:/go/app
+    platform: linux/amd64
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+    command: sh -c "cd/go/app && go install github.com/kyleconroy/sqlc/cmd/sqlc@latest"
